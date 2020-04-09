@@ -1,48 +1,24 @@
 import React, { useState } from "react";
-
 import "./styles.css";
-import { useEffect } from "react";
-import api from "./services/api";
+import api from "../src/services/api";
 
 function App() {
-  const [title, setTitle] = useState([]);
-  const [url, setUrl] = useState([]);
-  const [techs, setTechs] = useState([]);
   const [repositories, setRepositories] = useState([]);
 
-  useEffect(() => {
-    api.get("repositories").then(response => {
-      setRepositories(response.data);
+  async function handleAddRepository() {
+    const response = await api.post("repositories", {
+      url: "https://github.com/josepholiveira",
+      title: "Desafio ReactJS",
+      techs: ["React", "Node.js"]
     });
-  });
-  async function handleAddRepository(e) {
-    e.preventDefault();
-    try {
-      const response = await api.post("repositories", {
-        title,
-        url,
-        techs,
-      });
-      console.log(response.data);
-      setRepositories([...repositories,response.data]);
-      setTitle("");
-      setUrl("");
-      setTechs("");
-
-    } catch (err) {
-      alert("Erro ao adicionar um repositorio, tente novamente");
-    }
+    const repository = response.data;
+    setRepositories([...repositories, repository]);
   }
 
   async function handleRemoveRepository(id) {
-    try {
-
-    await api.delete(`repositories/${id}`); 
-  
-      setRepositories(repositories.filter(repository => repository.id !== id));
-    } catch (err) {
-      alert("Erro ao deletar caso, tente novamente");
-    }
+    await api.delete(`/repositories/${id}`);
+    const newRepo = repositories.filter(repository => repository.id !== id);
+    setRepositories(newRepo);
   }
 
   return (
@@ -51,9 +27,11 @@ function App() {
         <li>
           <ul>
             {repositories.map(repository => (
-              <li key={repository.id}>{repository.title}</li>
+              <li key={repository.id}>
+                {repository.title}
+                <button onClick={() => handleRemoveRepository(repository.id)}>Remover</button>
+              </li>
             ))}
-            <button onClick={() => handleRemoveRepository(1)}>Remover</button>
           </ul>
         </li>
       </ul>
